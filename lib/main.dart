@@ -21,11 +21,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return  MaterialApp(home:
-        RepositoryProvider(
-          create: (BuildContext context) => Repositories(),
-          child: Home(),
-        ));
+    return MaterialApp(
+        home: RepositoryProvider(
+      create: (BuildContext context) => Repositories(),
+      child: const Home(),
+    ));
   }
 }
 
@@ -36,33 +36,50 @@ class Home extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => UserBloc(
-          RepositoryProvider.of<Repositories>(context),
-          )
-        ..add(LoadUserEvvent()),
+        RepositoryProvider.of<Repositories>(context),
+      )..add(LoadUserEvvent()),
       child: Scaffold(
         appBar: AppBar(
           title: const Center(child: Text("Flutter Bloc")),
         ),
         body: BlocBuilder<UserBloc, UserState>(
           builder: (BuildContext context, state) {
-
-
-
             if (state is UserLoadingState) {
               return const Center(child: CircularProgressIndicator());
-
             }
-
             if (state is UserLoadedState) {
-              return const Center(
-                child: Text("Data Loaded"),
+              return Center(
+                child: ListView.builder(
+                    itemCount: state.Users.length,
+                    itemBuilder: (context, i) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ListTile(style: ListTileStyle.drawer,tileColor: Colors.blueGrey.shade300,horizontalTitleGap: 10,shape: RoundedRectangleBorder(borderRadius:BorderRadius.circular(10)),
+                          leading: CircleAvatar(
+                            radius: 30,
+                            backgroundColor: Colors.black,backgroundImage: NetworkImage( state.Users[i].avatar??"",),
+                            // child: Image.network(
+                            //   state.Users[i].avatar ?? "",
+                            //   fit: BoxFit.fill,
+                            // ),
+                          ),
+                          title: Text(
+                              "${state.Users[i].firstName} ${state.Users[i].lastName}" ??
+                                  ""),
+                          subtitle: Text(state.Users[i].email ?? ""),
+                        ),
+                      );
+                    }),
               );
             }
-
+            if (state is ErrorState){
+              return const Center(child: Text("Error occured while Loading Data"));
+            }
             else {
               return const Center(
                 child: Text("Data Loading Failed"),
-              );;
+              );
+              ;
             }
           },
         ),
@@ -100,7 +117,7 @@ class New extends StatelessWidget {
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: Text("new"),
+          title: const Text("new"),
         ),
         body: Center(
           child: Column(
@@ -120,7 +137,7 @@ class New extends StatelessWidget {
                 style: Theme.of(context).textTheme.headline4,
               ),
               CupertinoButton(
-                  child: Container(child: Text("press")),
+                  child: Container(child: const Text("press")),
                   onPressed: () {
                     con.b.value += con.b.value;
                     con.a.value++;
@@ -129,7 +146,7 @@ class New extends StatelessWidget {
                   onPressed: () {
                     con.c.value += 0.1;
                   },
-                  child: Text("press")),
+                  child: const Text("press")),
             ],
           ),
         ),
