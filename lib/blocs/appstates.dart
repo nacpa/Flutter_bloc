@@ -36,3 +36,11 @@ class ErrorState extends UserState{
   List<Object?> get props => [];
 
 }
+
+
+class LoadState extends UserState{
+  @override
+  // TODO: implement props
+  List<Object?> get props => [];
+
+}

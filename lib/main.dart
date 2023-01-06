@@ -10,6 +10,7 @@ import 'package:untitled/blocs/appstates.dart';
 import 'package:untitled/second.dart';
 
 import 'Repo/Repositories.dart';
+import 'blocs/counter_bloc/counter_bloc.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,66 +25,97 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         home: RepositoryProvider(
       create: (BuildContext context) => Repositories(),
-      child: const Home(),
+      child:  Home(),
     ));
   }
 }
 
 class Home extends StatelessWidget {
-  const Home({Key? key}) : super(key: key);
+   Home({Key? key}) : super(key: key);
+  bool red=false;
 
   @override
   Widget build(BuildContext context) {
+     Repositories _repositories =Repositories();
+
     return BlocProvider(
       create: (context) => UserBloc(
         RepositoryProvider.of<Repositories>(context),
       )..add(LoadUserEvvent()),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Center(child: Text("Flutter Bloc")),
-        ),
-        body: BlocBuilder<UserBloc, UserState>(
-          builder: (BuildContext context, state) {
-            if (state is UserLoadingState) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state is UserLoadedState) {
-              return Center(
-                child: ListView.builder(
-                    itemCount: state.Users.length,
-                    itemBuilder: (context, i) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: ListTile(style: ListTileStyle.drawer,tileColor: Colors.blueGrey.shade300,horizontalTitleGap: 10,shape: RoundedRectangleBorder(borderRadius:BorderRadius.circular(10)),
-                          leading: CircleAvatar(
-                            radius: 30,
-                            backgroundColor: Colors.black,backgroundImage: NetworkImage( state.Users[i].avatar??"",),
-                            // child: Image.network(
-                            //   state.Users[i].avatar ?? "",
-                            //   fit: BoxFit.fill,
-                            // ),
-                          ),
-                          title: Text(
-                              "${state.Users[i].firstName} ${state.Users[i].lastName}" ??
-                                  ""),
-                          subtitle: Text(state.Users[i].email ?? ""),
+          appBar: AppBar(
+            title: const Center(child: Text("Flutter Bloc")),
+          ),floatingActionButton: FloatingActionButton(onPressed: (){
+        CounterBloc().add(increment());
+
+
+      },child:Icon(Icons.add),),
+          body: BlocListener<UserBloc, UserState>(
+            listener: (BuildContext context, state) {
+              if(state is UserLoadedState) red=true;
+              if(state is UserLoadingState) red=false;
+            },
+            child: BlocBuilder<UserBloc, UserState>(
+              builder: (BuildContext context, state) {
+                if (state is UserLoadingState) {
+                  return  const Center(child: CircularProgressIndicator());
+                }
+                if (state is UserLoadedState) {
+                  return Center(
+                    child: Column(
+                      children: [
+                        Container(height: 500,width: 500,
+                          child: ListView.builder(
+                              itemCount: state.Users.length,
+                              itemBuilder: (context, i) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ListTile(onTap: (){
+                                    UserBloc(_repositories).emit(UserLoadingState());
+                                    // CounterBloc().add(increment());
+                                  },
+                                    style: ListTileStyle.drawer,
+                                    tileColor: Colors.blueGrey.shade300,
+                                    horizontalTitleGap: 10,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10)),
+                                    leading: CircleAvatar(
+                                      radius: 30,
+                                      backgroundColor: Colors.black,
+                                      backgroundImage: NetworkImage(
+                                        state.Users[i].avatar ?? "",
+                                      ),
+
+                                    ),
+                                    title: Text(
+                                        "${state.Users[i].firstName} ${state.Users[i].lastName}" ??
+                                            ""),
+                                    subtitle: Text(state.Users[i].email ?? ""),
+                                  ),
+                                );
+                              }),
                         ),
-                      );
-                    }),
-              );
-            }
-            if (state is ErrorState){
-              return const Center(child: Text("Error occured while Loading Data"));
-            }
-            else {
-              return const Center(
-                child: Text("Data Loading Failed"),
-              );
-              ;
-            }
-          },
-        ),
-      ),
+                        BlocBuilder<CounterBloc,CounterState>(
+
+                           builder: (context,state){return Container(height: 100,width: 200,child: Text(state.count.toString()),);})
+
+
+                      ],
+                    ),
+                  );
+                }
+                if (state is ErrorState) {
+                  return const Center(
+                      child: Text("Error occured while Loading Data"));
+                } else {
+                  return const Center(
+                    child: Text("Data Loading Failed"),
+                  );
+                  ;
+                }
+              },
+            ),
+          )),
     );
   }
 }
