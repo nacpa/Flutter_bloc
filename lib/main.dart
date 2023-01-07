@@ -11,6 +11,8 @@ import 'package:untitled/second.dart';
 
 import 'Repo/Repositories.dart';
 import 'blocs/counter_bloc/counter_bloc.dart';
+import 'blocs/counter_bloc/counter_event.dart';
+import 'blocs/counter_bloc/counter_state.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,18 +27,18 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         home: RepositoryProvider(
       create: (BuildContext context) => Repositories(),
-      child:  Home(),
+      child: Home(),
     ));
   }
 }
 
 class Home extends StatelessWidget {
-   Home({Key? key}) : super(key: key);
-  bool red=false;
+  Home({Key? key}) : super(key: key);
+  bool red = false;
 
   @override
   Widget build(BuildContext context) {
-     Repositories _repositories =Repositories();
+    Repositories _repositories = Repositories();
 
     return BlocProvider(
       create: (context) => UserBloc(
@@ -45,76 +47,129 @@ class Home extends StatelessWidget {
       child: Scaffold(
           appBar: AppBar(
             title: const Center(child: Text("Flutter Bloc")),
-          ),floatingActionButton: FloatingActionButton(onPressed: (){
-        CounterBloc().add(increment());
-
-
-      },child:Icon(Icons.add),),
-          body: BlocListener<UserBloc, UserState>(
-            listener: (BuildContext context, state) {
-              if(state is UserLoadedState) red=true;
-              if(state is UserLoadingState) red=false;
-            },
-            child: BlocBuilder<UserBloc, UserState>(
-              builder: (BuildContext context, state) {
-                if (state is UserLoadingState) {
-                  return  const Center(child: CircularProgressIndicator());
-                }
-                if (state is UserLoadedState) {
-                  return Center(
-                    child: Column(
-                      children: [
-                        Container(height: 500,width: 500,
-                          child: ListView.builder(
-                              itemCount: state.Users.length,
-                              itemBuilder: (context, i) {
-                                return Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: ListTile(onTap: (){
-                                    UserBloc(_repositories).emit(UserLoadingState());
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {},
+            child: Icon(Icons.add),
+          ),
+          body: Column(
+            children: [
+              Expanded(
+                flex: 2,
+                child: BlocBuilder<UserBloc, UserState>(
+                  builder: (BuildContext context, state) {
+                    if (state is UserLoadingState) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (state is UserLoadedState) {
+                      return Center(
+                        child: ListView.builder(
+                            itemCount: state.Users.length,
+                            itemBuilder: (context, i) {
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ListTile(
+                                  onTap: () {
+                                    BlocProvider.of<UserBloc>(context)
+                                        .add(LoadUserEvvent());
+                                    // BlocProvider.of(context)
+                                    // UserBloc(_repositories)
+                                    //     .emit(UserLoadingState());
                                     // CounterBloc().add(increment());
                                   },
-                                    style: ListTileStyle.drawer,
-                                    tileColor: Colors.blueGrey.shade300,
-                                    horizontalTitleGap: 10,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10)),
-                                    leading: CircleAvatar(
-                                      radius: 30,
-                                      backgroundColor: Colors.black,
-                                      backgroundImage: NetworkImage(
-                                        state.Users[i].avatar ?? "",
-                                      ),
-
+                                  style: ListTileStyle.drawer,
+                                  tileColor: Colors.blueGrey.shade300,
+                                  horizontalTitleGap: 10,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  leading: CircleAvatar(
+                                    radius: 30,
+                                    backgroundColor: Colors.black,
+                                    backgroundImage: NetworkImage(
+                                      state.Users[i].avatar ?? "",
                                     ),
-                                    title: Text(
-                                        "${state.Users[i].firstName} ${state.Users[i].lastName}" ??
-                                            ""),
-                                    subtitle: Text(state.Users[i].email ?? ""),
                                   ),
-                                );
-                              }),
+                                  title: Text(
+                                      "${state.Users[i].firstName} ${state.Users[i].lastName}" ??
+                                          ""),
+                                  subtitle: Text(state.Users[i].email ?? ""),
+                                ),
+                              );
+                            }),
+                      );
+                    }
+                    if (state is ErrorState) {
+                      return const Center(
+                          child: Text("Error occured while Loading Data"));
+                    } else {
+                      return const Center(
+                        child: Text("Data Loading Failed"),
+                      );
+                      ;
+                    }
+                  },
+                ),
+              ),
+              Expanded(
+                child: BlocProvider(
+                  create: (context) => CounterBlocs(),
+                  child: BlocBuilder<CounterBlocs, CounterStates>(
+                      builder: (context, state) {
+                    return Column(
+                      //crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          state.counter.toString(),
+                          style: const TextStyle(fontSize: 30),
                         ),
-                        BlocBuilder<CounterBloc,CounterState>(
-
-                           builder: (context,state){return Container(height: 100,width: 200,child: Text(state.count.toString()),);})
-
-
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                                onPressed: () =>
+                                    BlocProvider.of<CounterBlocs>(context)
+                                        .add(Increment()),
+                                child: const Icon(Icons.add)),
+                            const SizedBox(
+                              width: 10,
+                            ),
+                            ElevatedButton(
+                                onPressed: () =>
+                                    BlocProvider.of<CounterBlocs>(context)
+                                        .add(Decrement()),
+                                child: const Icon(Icons.remove))
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        InkWell(
+                          onTap: () {
+                            // Navigator.push(context,
+                            //     MaterialPageRoute(
+                            //         builder: (context) => const SecondPage()));
+                          },
+                          child: Container(
+                            width: 138,
+                            height: 35,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
+                              color: Colors.grey,
+                            ),
+                            child: const Center(
+                                child: Text(
+                              "click",
+                              style: TextStyle(color: Colors.white),
+                            )),
+                          ),
+                        )
                       ],
-                    ),
-                  );
-                }
-                if (state is ErrorState) {
-                  return const Center(
-                      child: Text("Error occured while Loading Data"));
-                } else {
-                  return const Center(
-                    child: Text("Data Loading Failed"),
-                  );
-                  ;
-                }
-              },
-            ),
+                    );
+                  }),
+                ),
+              )
+            ],
           )),
     );
   }

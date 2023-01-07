@@ -27,5 +27,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
     });
   }
+
   final Repositories _repositories;
 }
